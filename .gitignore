@@ -1,10 +1,14 @@
+# Add your .gitignore content here
 # Local .terraform directories
+**/.idea/*
 **/.terraform/*
 
 # .tfstate files
 *.tfstate
 *.tfstate.*
-
+# Ignore Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
 # Crash log files
 crash.log
 crash.*.log

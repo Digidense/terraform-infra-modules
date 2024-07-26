@@ -1,6 +1,21 @@
-resource "aws_s3_bucket" "create-s3-bucket" {
+resource "aws_s3_bucket" "create_s3_bucket" {
   bucket = var.bucket-name
   acl    = "private"
+
+
+  module "Kms_module" {
+    source                  = "git::https://github.com/Digidense/terraform_module.git//kms?ref=feature/DD-35/kms_module"
+    aliases_name            = "alias/Kms_S3_Module"
+    description             = "kms module attachment"
+    deletion_window_in_days = 7
+    enable_key_rotation     = true
+  }
+
+  versioning {
+    enabled = true
+  }
+
+
 
   lifecycle_rule {
     id      = "archive"
@@ -17,24 +32,21 @@ resource "aws_s3_bucket" "create-s3-bucket" {
     }
   }
 
-  versioning {
-    enabled = true
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        kms_master_key_id = module.Kms_module.kms_key_arn
+        sse_algorithm     = "aws:kms"
+      }
+    }
   }
 
   tags = {
     Environment = "S3"
   }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "aws:kms"
-      }
-    }
-  }
 }
 
-resource "aws_s3_bucket_metric" "enable-metrics-bucket" {
+resource "aws_s3_bucket_metric" "enable_metrics_bucket" {
   bucket = var.bucket-name
   name   = "EntireBucket"
 }
@@ -44,16 +56,18 @@ resource "aws_iam_policy" "s3_bucket_policy" {
   description = "IAM policy for S3 bucket"
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Effect = "Allow"
+        Effect = "Allow",
         Action = [
           "s3:GetObject",
           "s3:PutObject",
         ],
-        Resource = "${aws_s3_bucket.create-s3-bucket.arn}/*"
+        Resource = "${aws_s3_bucket.create_s3_bucket.arn}/*"
       },
     ]
   })
 }
+
+

@@ -1,7 +1,8 @@
 # VPC module refer for sg and subnet
 module "vpc_module_rds" {
-  source = "git::https://github.com/Digidense/terraform-infra-modules.git//vpc?ref=feature/vpc_module"
-  # Other module parameters
+  source = "git::https://github.com/Digidense/terraform_module.git//vpc?ref=feature/DD-42-VPC_module"
+
+
 }
 
 # Secret Manager creation

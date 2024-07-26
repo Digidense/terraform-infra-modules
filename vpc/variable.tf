@@ -23,12 +23,12 @@ variable "vpc-tag" {
 variable "az" {
   description = "availability zone"
   type        = list(string)
- default     = ["us-east-1a", "us-east-1b"]
+  default     = ["us-east-1a", "us-east-1b"]
 }
 variable "public_subnet" {
   description = "create public subnet"
   type        = list(string)
- default     = ["192.168.0.0/26", "192.168.0.64/26"]
+  default     = ["192.168.0.0/26", "192.168.0.64/26"]
 }
 
 variable "public_subnet_tag" {
@@ -52,7 +52,7 @@ variable "public_subnet_tag" {
 variable "private_subnet" {
   description = "create public subnet"
   type        = list(string)
- default     = ["192.168.0.128/26", "192.168.0.192/26"]
+  default     = ["192.168.0.128/26", "192.168.0.192/26"]
 }
 
 variable "private_subnet_tag" {

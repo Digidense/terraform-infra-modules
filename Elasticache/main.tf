@@ -1,34 +1,138 @@
-resource "aws_elasticache_replication_group" "elastic_cache" {
-  count = var.cache_provider == var.cache_provider && var.cache_engine == var.cache_engine ? 1 : 0
+# Import VPC Module
+module "vpc_module" {
+  source = "git::https://github.com/Digidense/terraform-infra-modules.git//vpc?ref=feature/vpc_module"
+  vpc_cidr = var.vpc_cidr
+  region = var.region
+  count_num = var.count_num
+}
 
-  replication_group_id          = var.cluster_id
-  description                   = var.elasticache
-  engine                        = var.cache_engine
-  node_type                     = var.instance_type
-  num_node_groups               = 1
-  replicas_per_node_group       = var.num_cache_nodes - 1
-  multi_az_enabled              = var.multi_az
-  automatic_failover_enabled    = var.multi_az
-  at_rest_encryption_enabled    = true
-  transit_encryption_enabled    = true
+# Create a subnet group for ElastiCache
+resource "aws_elasticache_subnet_group" "elasticache_subnet_group" {
+  name       = "elasticache-subnet-group"
+  description = "Subnet group for ElastiCache"
+  subnet_ids = module.vpc_module.private_subnet
+}
+
+# Elasticache Replication Group for Redis
+resource "aws_elasticache_replication_group" "elastic_cache" {
+  count = var.cache_engine == "redis" ? 1 : 0
+
+  replication_group_id       = var.cluster_id
+  description                = var.elasticache
+  engine                     = var.cache_engine
+  node_type                  = var.instance_type
+  num_node_groups            = 1
+  replicas_per_node_group    = var.num_cache_nodes - 1
+  multi_az_enabled           = var.multi_az
+  automatic_failover_enabled = var.multi_az
+  at_rest_encryption_enabled = true
+  transit_encryption_enabled = true
+  kms_key_id                 = module.Kms_module.kms_key_id
+  subnet_group_name          = aws_elasticache_subnet_group.elasticache_subnet_group.name
+
+  log_delivery_configuration {
+    destination      = aws_cloudwatch_log_group.cache_logs.name
+    destination_type = "cloudwatch-logs"
+    log_format       = "text"
+    log_type         = "slow-log"
+  }
 
   tags = {
     Name = var.elasticache
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
+# Elasticache Cluster for Memcached
 resource "aws_elasticache_cluster" "elasticache_cluster" {
-  count = var.cache_provider == var.cache_provider && var.cache_engine == "memcached" ? 1 : 0
+  count = var.cache_engine == "memcached" ? 1 : 0
 
   cluster_id           = var.cluster_id
   engine               = var.cache_engine
   node_type            = var.instance_type
   num_cache_nodes      = var.num_cache_nodes
-  az_mode              = var.multi_az ? "cross-az" : "single-az"
+  az_mode              = var.num_cache_nodes > 1 && var.multi_az ? "cross-az" : "single-az"
   parameter_group_name = "default.memcached1.4"
-  port                 = 11211
+  port                 = var.port_no
+  subnet_group_name    = aws_elasticache_subnet_group.elasticache_subnet_group.name
 
   tags = {
     Name = var.elasticache-cluster
   }
+
+  lifecycle {
+    ignore_changes = all
+  }
+}
+
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "cache_logs" {
+  name = "redis-slow-logs"
+}
+
+# Parameter Group for Memcached
+resource "aws_elasticache_parameter_group" "elasticcache_parameter_group" {
+  count       = var.cache_engine == "memcached" ? 1 : 0
+  name        = "Elasticache_pg"
+  family      = "memcached1.4"
+  description = "This block is for parameter group"
+}
+
+# Parameter Group for Redis
+resource "aws_elasticache_parameter_group" "parameter_group" {
+  count       = var.cache_engine == "redis" ? 1 : 0
+  name        = "cache-params"
+  family      = "redis6.x"
+  description = "This block is for parameter group"
+
+  parameter {
+    name  = "activerehashing"
+    value = "yes"
+  }
+}
+
+# KMS (Key Management Service)
+module "Kms_module" {
+  source                  = "git::https://github.com/Digidense/terraform_module.git//kms?ref=feature/DD-35/kms_module"
+  aliases_name            = var.aliases_name
+  description             = "kms module attachment"
+  deletion_window_in_days = var.deletion_window_in_days
+  enable_key_rotation     = true
+
+}
+
+# CloudWatch Alarm for ElastiCache CPU Utilization
+locals {
+  cache_id = var.cache_engine == "redis" ? aws_elasticache_replication_group.elastic_cache[0].id : aws_elasticache_cluster.elasticache_cluster[0].cluster_id
+  metric_namespace = var.cache_engine == "redis" ? "ReplicationGroupId" : "CacheClusterId"
+}
+
+resource "aws_cloudwatch_metric_alarm" "elasticache_cpu_alarm" {
+  alarm_name          = "ElasticacheCPUUtilizationHigh"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = var.evaluation_periods
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/ElastiCache"
+  period              = var.alarm_period
+  statistic           = "Average"
+  threshold           = var.alarm_threshold
+
+  dimensions = {
+    "${local.metric_namespace}" = local.cache_id
+  }
+
+  alarm_description = "Alarm when ElastiCache CPU utilization exceeds threshold"
+  alarm_actions     = var.alarm_actions
+
+  lifecycle {
+    ignore_changes = all
+  }
+
+  depends_on = [
+    aws_elasticache_replication_group.elastic_cache,
+    aws_elasticache_cluster.elasticache_cluster
+  ]
 }

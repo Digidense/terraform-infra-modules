@@ -17,3 +17,8 @@ output "security_group_id" {
 output "db_endpoint" {
   value = aws_db_instance.example.endpoint
 }
+
+output "kms_key_id" {
+  description = "The ID of the KMS key"
+  value       = module.Kms_module.kms_key_id
+}

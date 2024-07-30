@@ -1,54 +1,79 @@
-# VPC module refer for sg and subnet
+# Define VPC module
 module "vpc_module_rds" {
   source = "git::https://github.com/Digidense/terraform_module.git//vpc?ref=feature/DD-42-VPC_module"
+}
+
+# Define KMS module
+module "Kms_module" {
+  source                  = "git::https://github.com/Digidense/terraform_module.git//kms?ref=feature/DD-35/kms_module"
+  aliases_name            = "alias/${var.aliases_name}"
+  description             = "KMS module attachment"
+  deletion_window_in_days = var.deletion_window_in_days
+  enable_key_rotation     = true
+}
 
 
+# Define local values for users and policies
+locals {
+  iam_users_policies = {
+    application_user = aws_iam_user.users["application_user"].name
+    readonly_user    = aws_iam_user.users["readonly_user"].name
+    flyway_user      = aws_iam_user.users["flyway_user"].name
+  }
+
+  users = {
+    "db"               = "Database"
+    "application_user" = "Application"
+    "readonly_user"    = "ReadOnly"
+    "flyway_user"      = "Flyway"
+  }
+}
+
+# Generate random passwords for each users
+resource "random_password" "user_passwords" {
+  for_each = local.users
+
+  length           = var.password_length
+  special          = var.password_format
+  override_special = "!#$%&*()@"
+}
+
+# Creating the RDS database with the generated password
+resource "aws_db_instance" "example" {
+  identifier                          = var.db_name
+  instance_class                      = var.instance_type
+  engine                              = var.engine_name
+  engine_version                      = var.engine_version
+  allocated_storage                   = var.allocated_storage
+  storage_type                        = var.storage_type
+  username                            = var.db_username
+  password                            = random_password.user_passwords["db"].result
+  parameter_group_name                = aws_db_parameter_group.example.name
+  publicly_accessible                 = var.publicly_accessible
+  multi_az                            = var.multi_az
+  backup_retention_period             = var.backup_retention_period
+  auto_minor_version_upgrade          = var.auto_minor_version_upgrade
+  db_subnet_group_name                = aws_db_subnet_group.example.name
+  vpc_security_group_ids              = [module.vpc_module_rds.security_group_id]
+  iam_database_authentication_enabled = true
 }
 
 # Secret Manager creation
 resource "aws_secretsmanager_secret" "db_credentials" {
   name                    = var.secret_name
   recovery_window_in_days = var.recovery_window_in_days
-  tags = {
-    Name = var.secret-tags
-  }
 }
 
-# Secret Manager version creation
+# Secret Manager version creation with the auto-generated database password
 resource "aws_secretsmanager_secret_version" "db_credentials_version" {
-  secret_id     = aws_secretsmanager_secret.db_credentials.id
+  secret_id = aws_secretsmanager_secret.db_credentials.id
   secret_string = jsonencode({
     username = var.db_username
-    password = var.db_username_password
+    password = random_password.user_passwords["db"].result
   })
 }
 
-# Creating the RDS database
-resource "aws_db_instance" "example" {
-  identifier                 = var.db_name
-  instance_class             = var.instance_class
-  engine                     = var.engine_name
-  engine_version             = var.engine_version
-  allocated_storage          = 20
-  storage_type               = var.storage_type
-  username                   = var.db_username
-  password                   = var.db_username_password
-  parameter_group_name       = var.parameter_group_name
-  publicly_accessible        = var.value_f
-  multi_az                   = var.value_t
-  backup_retention_period    = 7
-  backup_window              = var.backup_window
-  auto_minor_version_upgrade = var.value_t
-  db_subnet_group_name       = aws_db_subnet_group.example.name
-  skip_final_snapshot        = var.value_t
-  vpc_security_group_ids     = [module.vpc_module_rds.security_group_id]
-  tags = {
-    Name        = var.tag_name[0].name
-    Environment = var.tag_name[0].environment
-  }
-}
-
-# Subnet refer from the module block
+# Creating the RDS subnet group
 resource "aws_db_subnet_group" "example" {
   name = var.aws_db_subnet_group
   subnet_ids = [
@@ -57,30 +82,34 @@ resource "aws_db_subnet_group" "example" {
   ]
 }
 
-# IAM Authentication for application user
-resource "aws_iam_user" "application_user" {
-  name = var.application_user
+# Backups Replication
+resource "aws_db_instance_automated_backups_replication" "example" {
+  source_db_instance_arn = aws_db_instance.example.arn
+  retention_period       = 14
 }
 
-# Policy attached to application user
-resource "aws_iam_user_policy_attachment" "application_user_policy" {
-  user       = aws_iam_user.application_user.name
-  policy_arn = var.policy
+# Create Three users
+resource "aws_iam_user" "users" {
+  for_each = {
+    application_user = var.application_user
+    readonly_user    = var.readonly_user
+    flyway_user      = var.flyway_user
+  }
+
+  name = each.value
 }
 
-# Define a policy for Secrets Manager access
-resource "aws_iam_policy" "secrets_manager_policy" {
-  name        = "SecretsManagerPolicy"
-  description = "Policy to allow Secrets Manager actions"
+# Custom policy for RDS access
+resource "aws_iam_policy" "rds_access_policy" {
+  name        = "RDSAccessPolicy"
+  description = "Policy to allow RDS access for IAM users"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
         Effect = "Allow",
         Action = [
-          "secretsmanager:DescribeSecret",
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:ListSecrets"
+          "rds-db:connect"
         ],
         Resource = "*"
       }
@@ -88,8 +117,22 @@ resource "aws_iam_policy" "secrets_manager_policy" {
   })
 }
 
-# Attach the Secrets Manager policy to the application user
-resource "aws_iam_user_policy_attachment" "application_user_secrets_manager_policy" {
-  user       = aws_iam_user.application_user.name
-  policy_arn = aws_iam_policy.secrets_manager_policy.arn
+# Attach policy to three users
+resource "aws_iam_user_policy_attachment" "user_policy_attachments" {
+  for_each = local.iam_users_policies
+
+  user       = each.value
+  policy_arn = aws_iam_policy.rds_access_policy.arn
+}
+
+# Define a parameter group to enforce SSL connections for the RDS instance
+resource "aws_db_parameter_group" "example" {
+  name        = "${var.db_name}-parameter-group"
+  family      = var.engine_name
+  description = "Parameter group for RDS instance"
+
+  parameter {
+    name  = "require_secure_transport"
+    value = "1"
+  }
 }

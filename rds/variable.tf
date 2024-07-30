@@ -1,117 +1,125 @@
-variable "secret_name" {
-  description = "Name for the AWS Secrets Manager secret"
-  type        = string
-#  default     = "Secret-Tria"
-}
-
-variable "secret-tags" {
-  description = "Name for the AWS Secrets Manager secret"
-  type        = string
-#  default     = "Database Credentials"
-}
-
-variable "db_username" {
-  description = "Username for the PostgreSQL database"
-  type        = string
-#  default     = "PostgreSQL"
-}
-
-variable "db_username_password" {
-  description = "db_username_password  for the PostgreSQL database"
-  type        = string
-#  default     = "password"
-}
-
-variable "recovery_window_in_days" {
-  description = "recovery_window_in_days for secret manager deletion"
-  type        = number
-  default     = 7
-}
-
 variable "db_name" {
-  description = "recovery_window_in_days for secret manager deletion"
+  description = "Name of the database"
   type        = string
-#  default     = "unique-database"
 }
 
-variable "instance_class" {
-  description = "instance_class  of the db"
+variable "instance_type" {
+  description = "Instance class of the database"
   type        = string
-#  default     = "db.t3.micro"
 }
 
 variable "engine_name" {
-  description = "engine_name of the db"
+  description = "Engine name of the database"
   type        = string
-#  default     = "postgres"
 }
 
 variable "engine_version" {
-  description = "engine_version of the db"
+  description = "Engine version of the database"
   type        = string
-#  default     = "12.17"
 }
 
-variable "parameter_group_name" {
-  description = "parameter_group_name of the db"
-  type        = string
-  default     = "default.postgres12"
-}
-
-variable "value_t" {
-  description = "true value of db"
-  type        = bool
-  default     = true
-}
-
-variable "value_f" {
-  description = "false value of db"
-  type        = bool
-  default     = false
-}
-
-variable "tag_name" {
-  description = "tag_name of the db"
-  type = list(object({
-    name        = string
-    environment = string
-  }))
-  default = [
-    {
-      name        = "my-postgres-db"
-      environment = "production"
-    }
-  ]
-}
-
-
-variable "aws_db_subnet_group" {
-  description = "aws_db_subnet_group of the db"
-  type        = string
-  default     = "subnet_group_db"
-}
-
-variable "application_user" {
-  description = "application_user of the db"
-  type        = string
-  default     = "application_user"
-}
-
-variable "policy" {
-  description = "policy of the db"
-  type        = string
-  default     = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
-}
-
-variable "backup_window" {
-  description = "backup_window of the db"
-  type        = string
-  default     = "03:00-04:00"
+variable "allocated_storage" {
+  description = "Allocated storage for the database"
+  type        = number
+  default     = 20
 }
 
 variable "storage_type" {
-  description = "storage of the db"
+  description = "Storage type for the database"
   type        = string
   default     = "gp2"
 }
 
+variable "password_length" {
+  description = "Length of the database password"
+  type        = number
+  default     = 15
+}
+
+variable "password_format" {
+  description = "Whether the database password should include special characters"
+  type        = bool
+  default     = true
+}
+
+variable "publicly_accessible" {
+  description = "Whether the database is publicly accessible"
+  type        = bool
+  default     = false
+}
+
+variable "multi_az" {
+  description = "Whether the database should be deployed across multiple availability zones"
+  type        = bool
+  default     = true
+}
+
+variable "backup_retention_period" {
+  description = "Backup retention period in days for the database"
+  type        = number
+  default     = 7
+}
+
+variable "auto_minor_version_upgrade" {
+  description = "Whether minor version upgrades are applied automatically"
+  type        = bool
+  default     = true
+}
+
+variable "aws_db_subnet_group" {
+  description = "Name of the database subnet group"
+  type        = string
+  default     = "subnet_group_db"
+}
+
+variable "secret_name" {
+  description = "Name for the AWS Secrets Manager secret"
+  type        = string
+  default     = "db_secrets"
+}
+
+variable "db_username" {
+  description = "Username for the database"
+  type        = string
+}
+
+variable "recovery_window_in_days" {
+  description = "Recovery window in days for Secrets Manager deletion"
+  type        = number
+  default     = 7
+}
+
+variable "application_user" {
+  description = "Name of the application user"
+  type        = string
+  default     = "application_user"
+}
+
+variable "readonly_user" {
+  description = "Name of the readonly user"
+  type        = string
+  default     = "readonly_user"
+}
+
+variable "flyway_user" {
+  description = "Name of the flyway user"
+  type        = string
+  default     = "flyway_user"
+}
+
+variable "aliases_name" {
+  description = "The alias name for the KMS key, which must start with 'alias/'"
+  type        = string
+}
+
+variable "deletion_window_in_days" {
+  description = "Deletion window in days for the KMS key"
+  type        = number
+  default     = 30
+}
+
+variable "enable_key_rotation" {
+  description = "Whether to enable key rotation for the KMS key"
+  type        = bool
+  default     = true
+}

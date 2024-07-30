@@ -6,21 +6,15 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-data "aws_vpc_endpoint_service" "s3" {
-  filter {
-    name   = "service-name"
-    values = ["com.amazonaws.${var.region}.s3"]
+# Fetch VPC endpoint service details
+data "aws_vpc_endpoint_service" "services" {
+  for_each = {
+    s3       = "com.amazonaws.${var.region}.s3"
+    dynamodb = "com.amazonaws.${var.region}.dynamodb"
   }
   filter {
-    name   = "service-type"
-    values = ["Gateway"]
-  }
-}
-
-data "aws_vpc_endpoint_service" "dynamodb" {
-  filter {
     name   = "service-name"
-    values = ["com.amazonaws.${var.region}.dynamodb"]
+    values = [each.value]
   }
   filter {
     name   = "service-type"
@@ -104,26 +98,15 @@ resource "aws_route_table_association" "pri_rt_01" {
   subnet_id      = aws_subnet.private[count.index].id
 }
 
-# Private endpoint for S3 and DynamoDB
-resource "aws_vpc_endpoint" "s3_endpoint" {
-  service_name      = data.aws_vpc_endpoint_service.s3.service_name
+# Define private endpoints for S3 and DynamoDB
+resource "aws_vpc_endpoint" "services" {
+  for_each          = data.aws_vpc_endpoint_service.services
   vpc_id            = aws_vpc.digi-vpc.id
   vpc_endpoint_type = "Gateway"
+  service_name      = each.value.service_name
   route_table_ids   = [aws_route_table.pri_rt.id]
   tags = {
-    Name        = "S3_Endpoint"
-    Environment = "Dev"
-  }
-}
-
-# Private endpoint for  DynamoDB
-resource "aws_vpc_endpoint" "dynamodb_endpoint" {
-  service_name      = data.aws_vpc_endpoint_service.dynamodb.service_name
-  vpc_id            = aws_vpc.digi-vpc.id
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.pri_rt.id]
-  tags = {
-    Name        = "DynamoDB_Endpoint"
+    Name        = "${each.key}_Endpoint"
     Environment = "Dev"
   }
 }

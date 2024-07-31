@@ -22,7 +22,6 @@ locals {
   }
 
   users = {
-    "db"               = "Database"
     "application_user" = "Application"
     "readonly_user"    = "ReadOnly"
     "flyway_user"      = "Flyway"

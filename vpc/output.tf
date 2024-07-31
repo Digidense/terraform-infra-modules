@@ -14,3 +14,8 @@ output "private_subnet" {
   description = "The IDs of the private subnets"
   value       = tolist(aws_subnet.private[*].id)
 }
+
+output "security_group" {
+  description = "The IDs of the security group"
+  value = aws_security_group.sg
+}

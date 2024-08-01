@@ -1,5 +1,3 @@
-# terraform-infra-modules
-
 ## Explanation of `min` Calculation
 var.count_num: This is the number of subnets you want to create, which you provide as input.
 length(data.aws_availability_zones.available.names): This calculates the number of availability zones available in the selected AWS region.

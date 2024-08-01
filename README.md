@@ -1,5 +1,9 @@
 # terraform-infra-modules
 
+Explanation of min Calculation
+var.count_num: This is the number of subnets you want to create, which you provide as input.
+length(data.aws_availability_zones.available.names): This calculates the number of availability zones available in the selected AWS region.
+
 Inputs
 
 var.region: AWS region (e.g., us-west-2)
@@ -16,3 +20,5 @@ length(data.aws_availability_zones.available.names) = 3
 effective_count_num = min(10, 3) = 3
 
 Thus, effective_count_num will be 3.
+
+

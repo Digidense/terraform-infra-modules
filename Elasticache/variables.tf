@@ -8,7 +8,7 @@ variable "cache_provider" {
 variable "cache_engine" {
   description = "The name of the cache engine to be used for the clusters. Valid values: redis or memcached"
   type        = string
-  default     = "memcached"
+  default     = "redis"
 }
 
 #variable "engine_version" {
@@ -39,7 +39,7 @@ variable "instance_type" {
 variable "num_cache_nodes" {
   description = "The number of cache nodes"
   type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "multi_az" {

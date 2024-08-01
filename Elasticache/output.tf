@@ -5,9 +5,10 @@ output "cache_endpoint" {
 }
 
 output "replication_group_id" {
-  value = var.cache_engine == "redis" && length(aws_elasticache_replication_group.elastic_cache) > 0 ? aws_elasticache_replication_group.elastic_cache[0].replication_group_id : ""
+  value = var.cache_engine == "redis" && length(aws_elasticache_replication_group.elastic_cache) > 0 ? aws_elasticache_replication_group.elastic_cache[0].replication_group_id : null
   description = "The ID of the Redis replication group"
 }
+
 
 # Reference the VPC ID from the vpc_module
 output "vpc_id" {
@@ -28,5 +29,10 @@ output "private_subnet" {
 # Reference the KMS Ids
 output "kms_key_id" {
   description = "The ID of the KMS key"
-  value       = module.Kms_module.kms_key_id
+  value       = aws_kms_key.elasticache_kms_key.id
+}
+
+output "kms_key_arn" {
+  description = "The ID of the KMS key"
+  value       = aws_kms_key.elasticache_kms_key.arn
 }

@@ -83,6 +83,20 @@ variable "db_username" {
   type        = string
 }
 
+variable "tag_name" {
+  description = "tag_name of the db"
+  type = list(object({
+    name        = string
+    environment = string
+  }))
+  default = [
+    {
+      name        = "my-postgres-db"
+      environment = "production"
+    }
+  ]
+}
+
 variable "recovery_window_in_days" {
   description = "Recovery window in days for Secrets Manager deletion"
   type        = number
@@ -107,19 +121,16 @@ variable "flyway_user" {
   default     = "flyway_user"
 }
 
+# Variables for KMS
 variable "aliases_name" {
-  description = "The alias name for the KMS key, which must start with 'alias/'"
-  type        = string
+  description = "Aliases_name for KMS "
+  type = string
+  default = "alias/kms_rdskeys"
 }
 
 variable "deletion_window_in_days" {
-  description = "Deletion window in days for the KMS key"
-  type        = number
-  default     = 30
+  description = "deletion_window_in_days for KMS "
+  type = number
+  default = 7
 }
 
-variable "enable_key_rotation" {
-  description = "Whether to enable key rotation for the KMS key"
-  type        = bool
-  default     = true
-}

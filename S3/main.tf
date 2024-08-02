@@ -1,16 +1,3 @@
-# Create KMS Key for Encryption
-resource "aws_kms_key" "elasticache_kms_key" {
-  description             = "KMS key for ElastiCache encryption"
-  deletion_window_in_days = var.deletion_window_in_days
-  enable_key_rotation     = true
-}
-
-# Creates an AWS KMS alias name
-resource "aws_kms_alias" "my_alias" {
-  name          = var.aliases_name
-  target_key_id = aws_kms_key.elasticache_kms_key.arn
-}
-
 # Create Random String for S3 Bucket Name
 resource "random_string" "random_prefix" {
   length  = var.string_length
@@ -118,4 +105,18 @@ data "aws_iam_policy_document" "s3_read_write_policy" {
       "${aws_s3_bucket.create_s3_bucket.arn}/*"
     ]
   }
+}
+
+
+# Create KMS Key for Encryption
+resource "aws_kms_key" "elasticache_kms_key" {
+  description             = "KMS key for ElastiCache encryption"
+  deletion_window_in_days = var.deletion_window_in_days
+  enable_key_rotation     = true
+}
+
+# Creates an AWS KMS alias name
+resource "aws_kms_alias" "my_alias" {
+  name          = var.aliases_name
+  target_key_id = aws_kms_key.elasticache_kms_key.arn
 }

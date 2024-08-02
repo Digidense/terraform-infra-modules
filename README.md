@@ -36,6 +36,6 @@ Thus, effective_count_num will be 3.
 ### Calculating subnet size:
 
 *  The base CIDR block 192.168.0.0/24 can be divided into smaller subnets by adding 4 bits to the network prefix.
-2. Adding 4 bits to /24 results in /28 subnets.
-3. A /28 block contains 2^(32-28) = 16 IP addresses.
-4. Adding 4 bits allows for 2^4 = 16 subnets within the /24 block.
+* Adding 4 bits to /24 results in /28 subnets.
+* A /28 block contains 2^(32-28) = 16 IP addresses.
+* Adding 4 bits allows for 2^4 = 16 subnets within the /24 block.

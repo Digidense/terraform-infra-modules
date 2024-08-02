@@ -14,10 +14,6 @@ variable "vpc-tag" {
   })
 }
 
-variable "region" {
-  description = "The AWS region to create resources in"
-  type        = string
-}
 
 variable "count_num" {
   description = "Number of subnets"

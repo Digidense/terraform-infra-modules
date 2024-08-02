@@ -1,44 +1,54 @@
-module "kms_module" {
-  source                  = "git::https://github.com/Digidense/terraform_module.git//kms?ref=feature/DD-35/kms_module"
-  aliases_name            = "alias/Kms_S3_Module"
-  description             = "KMS module attachment"
-  deletion_window_in_days = var.kms_key_deletion_window_days
+# Create KMS Key for Encryption
+resource "aws_kms_key" "elasticache_kms_key" {
+  description             = "KMS key for ElastiCache encryption"
+  deletion_window_in_days = var.deletion_window_in_days
   enable_key_rotation     = true
 }
 
+# Creates an AWS KMS alias name
+resource "aws_kms_alias" "my_alias" {
+  name          = var.aliases_name
+  target_key_id = aws_kms_key.elasticache_kms_key.arn
+}
+
+# Create Random String for S3 Bucket Name
 resource "random_string" "random_prefix" {
   length  = var.string_length
   special = var.string_special
   upper   = var.string_upper
 }
 
+# Create S3 Bucket with Server-Side Encryption and Lifecycle Rules
 resource "aws_s3_bucket" "create_s3_bucket" {
-  bucket = "${var.bucket-name}-${random_string.random_prefix.result}"
-  acl    = "private"
+  bucket = "${var.bucket_name}-${random_string.random_prefix.result}"
+  acl    = var.bucket_acl
 
   versioning {
-    enabled = true
+    enabled = var.versioning_enabled
   }
 
   lifecycle_rule {
-    id      = "archive"
-    enabled = true
+    id      = var.lifecycle_rule_id
+    enabled = var.lifecycle_rule_enabled
 
     transition {
-      days          = 30
-      storage_class = "STANDARD_IA"
+      days          = var.transition_days_1
+      storage_class = var.storage_class_1
     }
 
-    transition {
-      days          = 60
-      storage_class = "GLACIER"
+    dynamic "transition" {
+      for_each = var.use_glacier ? [1] : []
+      content {
+        days          = var.transition_days_2
+        storage_class = var.storage_class_2
+      }
     }
   }
 
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = module.kms_module.kms_key_arn
+        kms_master_key_id = aws_kms_key.elasticache_kms_key.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -49,57 +59,63 @@ resource "aws_s3_bucket" "create_s3_bucket" {
   }
 }
 
+# Enable S3 Bucket Metrics
 resource "aws_s3_bucket_metric" "enable_metrics_bucket" {
   bucket = aws_s3_bucket.create_s3_bucket.bucket
   name   = "EntireBucket"
 }
 
-locals {
-  s3_actions = {
-    read = [
-      "s3:GetObject",
-      "s3:ListBucket"
-    ]
-    read_write = [
-      "s3:GetObject",
-      "s3:ListBucket",
-      "s3:PutObject"
+# Create IAM Role for S3 Access
+resource "aws_iam_role" "s3_read_role" {
+  name = "s3_read_role"
+
+  assume_role_policy = data.aws_iam_policy_document.s3_assume_role_policy.json
+
+  inline_policy {
+    name   = "s3_read_policy"
+    policy = data.aws_iam_policy_document.s3_read_policy.json
+  }
+}
+
+resource "aws_iam_role" "s3_read_write_role" {
+  name = "s3_read_write_role"
+
+  assume_role_policy = data.aws_iam_policy_document.s3_assume_role_policy.json
+
+  inline_policy {
+    name   = "s3_read_write_policy"
+    policy = data.aws_iam_policy_document.s3_read_write_policy.json
+  }
+}
+
+# Data Sources for IAM Policies
+data "aws_iam_policy_document" "s3_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "s3_read_policy" {
+  statement {
+    actions   = ["s3:GetObject", "s3:ListBucket"]
+    resources = [
+      "${aws_s3_bucket.create_s3_bucket.arn}",
+      "${aws_s3_bucket.create_s3_bucket.arn}/*"
     ]
   }
 }
 
-resource "aws_iam_role" "s3_role" {
-  for_each = local.s3_actions
-
-  name = "s3_${each.key}_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
-      }
+data "aws_iam_policy_document" "s3_read_write_policy" {
+  statement {
+    actions   = ["s3:GetObject", "s3:ListBucket", "s3:PutObject"]
+    resources = [
+      "${aws_s3_bucket.create_s3_bucket.arn}",
+      "${aws_s3_bucket.create_s3_bucket.arn}/*"
     ]
-  })
-
-  inline_policy {
-    name = "s3_${each.key}_policy"
-    policy = jsonencode({
-      Version = "2012-10-17",
-      Statement = [
-        {
-          Effect = "Allow",
-          Action = each.value,
-          Resource = [
-            "${aws_s3_bucket.create_s3_bucket.arn}",
-            "${aws_s3_bucket.create_s3_bucket.arn}/*"
-          ]
-        }
-      ]
-    })
   }
 }

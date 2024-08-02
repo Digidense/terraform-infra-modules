@@ -8,26 +8,25 @@ variable "cache_provider" {
 variable "cache_engine" {
   description = "The name of the cache engine to be used for the clusters. Valid values: redis or memcached"
   type        = string
-  default     = "redis"
 }
 
-#variable "engine_version" {
-#  description = "Engine_version for redis or memcached"
-#  type        = number
-#  default     = "7.1.0"
-#}
+variable "engine_version" {
+  description = "Engine_version for redis or memcached"
+  type        = string
+  default     = "1.6.22"
+}
 
 
 variable "elasticache" {
   description = "Tags for elasticache-replication-group"
-  type = string
-  default = "elasticache-replication-group"
+  type        = string
+  default     = "elasticache-replication-group"
 }
 
 variable "elasticache-cluster" {
   description = "Tags for elasticache-cluster"
-  type = string
-  default = "elasticache-cluster"
+  type        = string
+  default     = "elasticache-cluster"
 }
 
 variable "instance_type" {
@@ -50,8 +49,8 @@ variable "multi_az" {
 
 variable "port_no" {
   description = "Port number for elasticache"
-  type =number
-  default = 11211
+  type        = number
+  default     = 11211
 }
 
 variable "az_mode" {
@@ -75,14 +74,14 @@ variable "cluster_id" {
 # Variables for KMS
 variable "aliases_name" {
   description = "Aliases_name for KMS "
-  type = string
-  default = "alias/kms_key"
+  type        = string
+  default     = "alias/kms_keys"
 }
 
 variable "deletion_window_in_days" {
   description = "deletion_window_in_days for KMS "
-  type = number
-  default = 7
+  type        = number
+  default     = 7
 }
 
 # Variables for VPC
@@ -124,4 +123,76 @@ variable "alarm_actions" {
   description = "The list of actions to execute when this alarm transitions into an ALARM state"
   type        = list(string)
   default     = []
+}
+
+variable "elasticache-subnet-group" {
+  description = "Subnet group for ElastiCache"
+  type        = string
+  default     = "elasticache-subnet-group"
+}
+
+variable "cloudwatch-logs" {
+  description = "cloudwatch-logs for ElastiCache"
+  type        = string
+  default     = "cloudwatch-logs"
+}
+
+variable "logs-formates" {
+  description = "logs-formates for ElastiCache"
+  type        = string
+  default     = "text"
+}
+
+variable "log_type" {
+  description = "log_type for ElastiCache"
+  type        = string
+  default     = "engine-log"
+}
+
+variable "cache_logs_name" {
+  description = "cache_logs for ElastiCache"
+  type        = string
+  default     = "redis-slow-logs"
+}
+
+variable "elasticache-pg-memcached" {
+  description = "elasticache-pg for memcached ElastiCache"
+  type        = string
+  default     = "elasticache-pg"
+}
+
+variable "pg_family-memcached" {
+  description = "pg_family for memcached ElastiCache"
+  type        = string
+  default     = "memcached1.6"
+}
+
+variable "elasticache-pg-redis" {
+  description = "elasticache-pg for redis ElastiCache"
+  type        = string
+  default     = "cache-params"
+}
+
+variable "pg_family-redis" {
+  description = "pg_family for redis ElastiCache"
+  type        = string
+  default     = "redis6.x"
+}
+
+variable "parameter_name" {
+  description = "parameter_group parameter name"
+  type        = string
+  default     = "activerehashing"
+}
+
+variable "alarm_name" {
+  description = "Name of the elasticache_cpu_alarm"
+  type        = string
+  default     = "ElasticacheCPUUtilizationHigh"
+}
+
+variable "environment" {
+  description = "this block is for environment"
+  type        = string
+  default     = "Development"
 }

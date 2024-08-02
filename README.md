@@ -20,4 +20,11 @@ effective_count_num = min(10, 3) = 3
 
 Thus, effective_count_num will be 3.
 
+## Explanation of `cider block` Calculation
+
+## Explanation of `cidrsubnet` Function
+
+### The cidrsubnet function in Terraform is used to calculate subnets from a given CIDR block
+
+`syntax` : cidrsubnet(base, newbits, netnum)
 

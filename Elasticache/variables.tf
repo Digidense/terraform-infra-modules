@@ -16,6 +16,11 @@ variable "engine_version" {
   default     = "1.6.22"
 }
 
+variable "num_node_groups" {
+  description = "Number of node groups for your cluster"
+  type        = number
+  default     = 1
+}
 
 variable "elasticache" {
   description = "Tags for elasticache-replication-group"

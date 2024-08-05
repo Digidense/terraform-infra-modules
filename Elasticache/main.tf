@@ -18,7 +18,7 @@ resource "aws_elasticache_subnet_group" "elasticache_subnet_group" {
   }
 }
 
-# Create KMS Key for Encryption
+# Create KMS Key for Encryption without policy
 resource "aws_kms_key" "elasticache_kms_key" {
   description             = "KMS key for ElastiCache encryption"
   deletion_window_in_days = var.deletion_window_in_days
@@ -30,11 +30,37 @@ resource "aws_kms_key" "elasticache_kms_key" {
   }
 }
 
+# Define the policy for the KMS key
+data "aws_iam_policy_document" "kms_policy" {
+  statement {
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [aws_kms_key.elasticache_kms_key.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["elasticache.amazonaws.com"]
+    }
+
+    effect = "Allow"
+  }
+}
+
+# Attach the policy to the KMS key using aws_kms_key_policy
+resource "aws_kms_key_policy" "elasticache_kms_policy" {
+  key_id = aws_kms_key.elasticache_kms_key.key_id
+  policy = data.aws_iam_policy_document.kms_policy.json
+}
+
 # Creates an AWS KMS alias name
 resource "aws_kms_alias" "my_alias" {
   name          = var.aliases_name
   target_key_id = aws_kms_key.elasticache_kms_key.arn
-
 }
 
 # Elasticache Replication Group for Redis
@@ -45,7 +71,7 @@ resource "aws_elasticache_replication_group" "elastic_cache" {
   description                = var.elasticache
   engine                     = var.cache_engine
   node_type                  = var.instance_type
-  num_node_groups            = 1
+  num_node_groups            = var.num_node_groups
   replicas_per_node_group    = var.num_cache_nodes
   multi_az_enabled           = var.multi_az
   automatic_failover_enabled = var.multi_az

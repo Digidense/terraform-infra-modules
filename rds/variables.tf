@@ -57,7 +57,6 @@ variable "multi_az" {
 variable "retention_period" {
   description = "The retention period for automated backups replication"
   type        = number
-  default     = 14
 }
 
 variable "backup_retention_period" {

@@ -127,13 +127,13 @@ data "aws_iam_policy_document" "s3_kms_policy" {
       "kms:ReEncryptFrom",
       "kms:ReEncryptTo"
     ]
-    resources = [aws_kms_key.elasticache_kms_key.arn]
+    resources = [aws_kms_key.s3_kms_key.arn]
   }
 }
 
 # Create KMS Key for Encryption
-resource "aws_kms_key" "elasticache_kms_key" {
-  description             = "KMS key for ElastiCache encryption"
+resource "aws_kms_key" "s3_kms_key" {
+  description             = "KMS key for s3 encryption"
   deletion_window_in_days = var.deletion_window_in_days
   enable_key_rotation     = true
 }
@@ -141,5 +141,5 @@ resource "aws_kms_key" "elasticache_kms_key" {
 # Creates an AWS KMS alias name
 resource "aws_kms_alias" "my_alias" {
   name          = var.aliases_name
-  target_key_id = aws_kms_key.elasticache_kms_key.arn
+  target_key_id = aws_kms_key.s3_kms_key.arn
 }

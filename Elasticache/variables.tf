@@ -10,6 +10,12 @@ variable "cache_engine" {
   type        = string
 }
 
+variable "ElastiCacheKMSKey" {
+  description = "The name of the ElastiCacheKMSKey"
+  type        = string
+  default     = "ElastiCacheKMSKey"
+}
+
 variable "engine_version" {
   description = "Engine_version for redis or memcached"
   type        = string

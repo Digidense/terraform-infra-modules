@@ -25,7 +25,7 @@ resource "aws_kms_key" "elasticache_kms_key" {
   enable_key_rotation     = true
 
   tags = {
-    Name        = "ElastiCacheKMSKey"
+    Name        = var.ElastiCacheKMSKey
     Environment = var.environment
   }
 }
@@ -79,7 +79,7 @@ resource "aws_elasticache_replication_group" "elastic_cache" {
   transit_encryption_enabled = true
   kms_key_id                 = aws_kms_key.elasticache_kms_key.arn
   subnet_group_name          = aws_elasticache_subnet_group.elasticache_subnet_group.name
-
+  security_group_ids         = [module.vpc_module.sg]
   log_delivery_configuration {
     destination      = aws_cloudwatch_log_group.cache_logs.name
     destination_type = var.cloudwatch-logs
@@ -109,7 +109,7 @@ resource "aws_elasticache_cluster" "elasticache_cluster" {
   parameter_group_name = aws_elasticache_parameter_group.elasticcache_parameter_group[0].name
   port                 = var.port_no
   subnet_group_name    = aws_elasticache_subnet_group.elasticache_subnet_group.name
-
+  security_group_ids   = [module.vpc_module.sg]
   tags = {
     Name        = var.elasticache
     Environment = var.environment

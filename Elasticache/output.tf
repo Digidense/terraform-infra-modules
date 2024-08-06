@@ -26,6 +26,11 @@ output "private_subnet" {
   value       = module.vpc_module.private_subnet
 }
 
+output "security_group" {
+  description = "The IDs of the security group"
+  value = module.vpc_module.sg
+}
+
 # Reference the KMS Ids
 output "kms_key_id" {
   description = "The ID of the KMS key"

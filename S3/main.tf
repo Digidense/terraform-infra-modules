@@ -75,6 +75,16 @@ resource "aws_iam_role" "s3_read_write_role" {
   }
 }
 
+resource "aws_iam_role_policy" "s3_read_kms_policy" {
+  role = aws_iam_role.s3_read_role.id
+  policy = data.aws_iam_policy_document.s3_kms_policy.json
+}
+
+resource "aws_iam_role_policy" "s3_read_write_kms_policy" {
+  role = aws_iam_role.s3_read_write_role.id
+  policy = data.aws_iam_policy_document.s3_kms_policy.json
+}
+
 # Data Sources for IAM Policies
 data "aws_iam_policy_document" "s3_assume_role_policy" {
   statement {
@@ -107,6 +117,19 @@ data "aws_iam_policy_document" "s3_read_write_policy" {
   }
 }
 
+data "aws_iam_policy_document" "s3_kms_policy" {
+  statement {
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+      "kms:GenerateDataKeyWithoutPlaintext",
+      "kms:ReEncryptFrom",
+      "kms:ReEncryptTo"
+    ]
+    resources = [aws_kms_key.elasticache_kms_key.arn]
+  }
+}
 
 # Create KMS Key for Encryption
 resource "aws_kms_key" "elasticache_kms_key" {

@@ -62,7 +62,6 @@ resource "aws_db_instance" "example" {
   storage_type                        = var.storage_type
   username                            = var.db_username
   password                            = random_password.user_passwords["db"].result
-  publicly_accessible                 = var.publicly_accessible
   multi_az                            = var.multi_az
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   db_subnet_group_name                = aws_db_subnet_group.example.name

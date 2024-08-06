@@ -64,7 +64,6 @@ resource "aws_db_instance" "example" {
   password                            = random_password.user_passwords["db"].result
   publicly_accessible                 = var.publicly_accessible
   multi_az                            = var.multi_az
-  backup_retention_period             = var.backup_retention_period
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   db_subnet_group_name                = aws_db_subnet_group.example.name
   vpc_security_group_ids              = [module.vpc_module.sg]

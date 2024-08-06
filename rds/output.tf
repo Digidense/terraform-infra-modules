@@ -1,21 +1,22 @@
+# Reference the VPC ID from the vpc_module
 output "vpc_id" {
-  value = module.vpc_module_rds.vpc_id
+  description = "The ID of the VPC"
+  value       = module.vpc_module.vpc_id
 }
 
-output "subnet_pri01_id" {
-  value = module.vpc_module_rds.subnet_pri01
+output "public_subnet" {
+  description = "The IDs of the public subnets"
+  value       = module.vpc_module.public_subnet
 }
 
-output "subnet_pri02_id" {
-  value = module.vpc_module_rds.subnet_pri02
+output "private_subnet" {
+  description = "The IDs of the private subnets"
+  value       = module.vpc_module.private_subnet
 }
 
-output "security_group_id" {
-  value = module.vpc_module_rds.security_group_id
-}
-
-output "db_endpoint" {
-  value = aws_db_instance.example.endpoint
+output "security_group" {
+  description = "The IDs of the security group"
+  value = module.vpc_module.sg
 }
 
 # Reference the KMS Ids

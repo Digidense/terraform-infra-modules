@@ -1,14 +1,47 @@
-# Define VPC module
-module "vpc_module_rds" {
-  source = "git::https://github.com/Digidense/terraform_module.git//vpc?ref=feature/DD-42-VPC_module"
+# Import VPC Module
+module "vpc_module" {
+  source    = "git::https://github.com/Digidense/terraform-infra-modules.git//vpc?ref=feature/vpc_module"
+  vpc_cidr  = var.vpc_cidr
+  region    = var.region
+  count_num = var.count_num
 }
 
-# Create KMS Key for Encryption
 resource "aws_kms_key" "rds_kms_key" {
-  description             = "KMS key for ElastiCache encryption"
+  description             = "KMS key for RDS encryption"
   deletion_window_in_days = var.deletion_window_in_days
-  enable_key_rotation = true
+  enable_key_rotation     = true
 
+  tags = {
+    Name        = "RDSKMSKey"
+    Environment = "deployment"
+  }
+}
+
+# Define the policy for the KMS key
+data "aws_iam_policy_document" "kms_policy" {
+  statement {
+    actions = [
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:DescribeKey"
+    ]
+    resources = [aws_kms_key.rds_kms_key.arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["rds.amazonaws.com"]
+    }
+
+    effect = "Allow"
+  }
+}
+
+# Attach the policy to the KMS key using aws_kms_key_policy
+resource "aws_kms_key_policy" "rds_kms_policy" {
+  key_id = aws_kms_key.rds_kms_key.key_id
+  policy = data.aws_iam_policy_document.kms_policy.json
 }
 
 # Creates an AWS KMS alias name
@@ -18,23 +51,23 @@ resource "aws_kms_alias" "my_alias" {
 }
 
 
+
 # Creating the RDS database with the generated password
 resource "aws_db_instance" "example" {
   identifier                          = var.db_name
   instance_class                      = var.instance_type
   engine                              = var.engine_name
-  engine_version                      = "8.0.35"
+  engine_version                      = var.engine_name
   allocated_storage                   = var.allocated_storage
   storage_type                        = var.storage_type
   username                            = var.db_username
   password                            = random_password.user_passwords["db"].result
-#  parameter_group_name                = aws_db_parameter_group.example.name
   publicly_accessible                 = var.publicly_accessible
   multi_az                            = var.multi_az
   backup_retention_period             = var.backup_retention_period
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   db_subnet_group_name                = aws_db_subnet_group.example.name
-  vpc_security_group_ids              = [module.vpc_module_rds.security_group_id]
+  vpc_security_group_ids              = [module.vpc_module.sg]
   iam_database_authentication_enabled = true
   tags = {
     Name        = var.tag_name.name
@@ -42,6 +75,23 @@ resource "aws_db_instance" "example" {
   }
 }
 
+# Custom policy for RDS access
+resource "aws_iam_policy" "rds_access_policy" {
+  name        = "RDSAccessPolicy"
+  description = "Policy to allow RDS access for IAM users"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "rds-db:connect"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
 # Define local values for users and policies
 locals {
   iam_users_policies = {
@@ -84,16 +134,18 @@ resource "aws_secretsmanager_secret_version" "db_credentials_version" {
 # Creating the RDS subnet group
 resource "aws_db_subnet_group" "example" {
   name = var.aws_db_subnet_group
-  subnet_ids = [
-    module.vpc_module_rds.subnet_pri01,
-    module.vpc_module_rds.subnet_pri02
-  ]
+  subnet_ids = module.vpc_module.private_subnet
+  tags = {
+    Name        = var.aws_db_subnet_group
+    Environment = "deployment"
+  }
+
 }
 
 # Backups Replication
 resource "aws_db_instance_automated_backups_replication" "example1" {
   source_db_instance_arn = aws_db_instance.example.arn
-  retention_period       = 14
+  retention_period       = var.retention_period
 }
 
 # Create Three users
@@ -107,23 +159,6 @@ resource "aws_iam_user" "users" {
   name = each.value
 }
 
-# Custom policy for RDS access
-resource "aws_iam_policy" "rds_access_policy" {
-  name        = "RDSAccessPolicy"
-  description = "Policy to allow RDS access for IAM users"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "rds-db:connect"
-        ],
-        Resource = "*"
-      }
-    ]
-  })
-}
 
 # Attach policy to three users
 resource "aws_iam_user_policy_attachment" "user_policy_attachments" {
@@ -132,4 +167,3 @@ resource "aws_iam_user_policy_attachment" "user_policy_attachments" {
   user       = each.value
   policy_arn = aws_iam_policy.rds_access_policy.arn
 }
-

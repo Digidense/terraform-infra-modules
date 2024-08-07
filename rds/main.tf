@@ -75,7 +75,7 @@ resource "aws_db_instance" "postgres_instance" {
 
 # Microsoft SQL Server Database Instance
 resource "aws_db_instance" "mssql_instance" {
-  count                               = var.mssql_instance ? 1 : 0
+  count                               = var.engine_name == "mssql" ? 1 : 0
   identifier                          = var.db_name
   instance_class                      = var.instance_type
   engine                              = var.engine_name

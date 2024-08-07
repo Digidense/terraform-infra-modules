@@ -16,7 +16,7 @@ output "private_subnet" {
 
 output "security_group" {
   description = "The IDs of the security group"
-  value = module.vpc_module.sg
+  value = module.vpc_module.security_group
 }
 
 # Reference the KMS Ids

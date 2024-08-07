@@ -1,10 +1,33 @@
-variable "db_name" {
-  description = "Name of the database"
+variable "vpc_cidr" {
+  description = "CIDR block for the VPC"
+  type        = string
+  default = "192.168.0.0/24"
+}
+
+variable "region" {
+  description = "AWS region"
   type        = string
 }
 
-variable "instance_type" {
-  description = "Instance class of the database"
+variable "count_num" {
+  description = "number of subnets"
+  type        = number
+}
+
+variable "deletion_window_in_days" {
+  description = "Number of days before the KMS key is deleted"
+  type        = number
+  default = 30
+}
+
+variable "aliases_name" {
+  description = "Alias name for the KMS key"
+  type        = string
+  default     = "rds_kms_key"
+}
+
+variable "db_name" {
+  description = "Name of the database"
   type        = string
 }
 
@@ -13,15 +36,20 @@ variable "engine_name" {
   type        = string
 }
 
+variable "instance_type" {
+  description = "Instance type for the RDS instances"
+  type        = string
+}
+
 variable "engine_version" {
-  description = "Engine version of the database"
+  description = "Engine version"
   type        = string
 }
 
 variable "allocated_storage" {
-  description = "Allocated storage for the database"
+  description = "Allocated storage for the RDS instances"
   type        = number
-  default     = 20
+  default = 20
 }
 
 variable "storage_type" {
@@ -30,16 +58,9 @@ variable "storage_type" {
   default     = "gp2"
 }
 
-variable "password_length" {
-  description = "Length of the database password"
-  type        = number
-  default     = 15
-}
-
-variable "password_format" {
-  description = "Whether the database password should include special characters"
-  type        = bool
-  default     = true
+variable "db_username" {
+  description = "Username for the database"
+  type        = string
 }
 
 variable "publicly_accessible" {
@@ -54,16 +75,6 @@ variable "multi_az" {
   default     = true
 }
 
-variable "retention_period" {
-  description = "The retention period for automated backups replication"
-  type        = number
-}
-
-variable "backup_retention_period" {
-  description = "Backup retention period in days for the database"
-  type        = number
-  default     = 7
-}
 
 variable "auto_minor_version_upgrade" {
   description = "Whether minor version upgrades are applied automatically"
@@ -77,81 +88,74 @@ variable "aws_db_subnet_group" {
   default     = "subnet_group_db"
 }
 
+variable "environment" {
+  description = "Environment tag"
+  type        = string
+  default = "deployment"
+}
+
+variable "password_length" {
+  description = "Length of the database password"
+  type        = number
+  default     = 15
+}
+
+
+variable "password_format" {
+  description = "Whether the database password should include special characters"
+  type        = bool
+  default     = true
+}
+
+variable "mysql_instance" {
+  description = "Whether to create a MySQL instance"
+  type        = bool
+  default     = true
+}
+
+variable "postgres_instance" {
+  description = "Whether to create a PostgreSQL instance"
+  type        = bool
+  default     = true
+}
+
+variable "mssql_instance" {
+  description = "Whether to create an Oracle instance"
+  type        = bool
+  default     = true
+}
+
 variable "secret_name" {
-  description = "Name for the AWS Secrets Manager secret"
+  description = "Name for the Secrets Manager secret"
   type        = string
-  default     = "db_secrets"
-}
-
-variable "db_username" {
-  description = "Username for the database"
-  type        = string
-}
-
-variable "tag_name" {
-  description = "tag_name of the db"
-  type = list(object({
-    name        = string
-    environment = string
-  }))
-  default = [
-    {
-      name        = "my-postgres-db"
-      environment = "production"
-    }
-  ]
+  default = "db_secret"
 }
 
 variable "recovery_window_in_days" {
-  description = "Recovery window in days for Secrets Manager deletion"
+  description = "Recovery window in days for Secrets Manager"
   type        = number
-  default     = 7
+  default = 7
+}
+
+variable "retention_period" {
+  description = "Retention period for automated backups"
+  type        = number
 }
 
 variable "application_user" {
   description = "Name of the application user"
   type        = string
-  default     = "application_user"
+  default = "application_user"
 }
 
 variable "readonly_user" {
-  description = "Name of the readonly user"
+  description = "Name of the read-only user"
   type        = string
-  default     = "readonly_user"
+  default = "readonly_user"
 }
 
 variable "flyway_user" {
-  description = "Name of the flyway user"
+  description = "Name of the Flyway user"
   type        = string
-  default     = "flyway_user"
-}
-
-
-# Variables for KMS
-variable "aliases_name" {
-  description = "Aliases_name for KMS "
-  type        = string
-  default     = "alias/kms_keys"
-}
-
-variable "deletion_window_in_days" {
-  description = "deletion_window_in_days for KMS "
-  type        = number
-  default     = 7
-}
-
-# Variables for VPC
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC"
-  type        = string
-}
-
-variable "region" {
-  description = "The AWS region to create resources in"
-  type        = string
-}
-
-variable "count_num" {
-  description = "Number of subnets"
-  type        = number
+  default = "flyway_user"
 }

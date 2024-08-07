@@ -1,9 +1,10 @@
 # Create Random String for S3 Bucket Name
 resource "random_string" "random_prefix" {
-  length  = var.string_length
-  special = var.string_special
-  upper   = var.string_upper
+  length  = 4
+  special = false
+  upper   = false
 }
+
 
 # Create S3 Bucket with Server-Side Encryption and Lifecycle Rules
 resource "aws_s3_bucket" "create_s3_bucket" {

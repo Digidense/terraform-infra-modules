@@ -17,23 +17,6 @@ variable "bucket_name" {
   type        = string
 }
 
-variable "string_length" {
-  description = "The length of the random string"
-  type        = number
-  default     = 4
-}
-
-variable "string_special" {
-  description = "Whether the random string should contain special characters"
-  type        = bool
-  default     = false
-}
-
-variable "string_upper" {
-  description = "Whether the random string should be in uppercase"
-  type        = bool
-  default     = false
-}
 
 variable "bucket_acl" {
   description = "The ACL of the S3 bucket"

@@ -8,6 +8,7 @@ variable "cache_provider" {
 variable "cache_engine" {
   description = "The name of the cache engine to be used for the clusters. Valid values: redis or memcached"
   type        = string
+  default     = "memcached"
 }
 
 variable "ElastiCacheKMSKey" {
@@ -34,7 +35,7 @@ variable "elasticache" {
   default     = "elasticache-replication-group"
 }
 
-variable "elasticache-cluster" {
+variable "elasticache_cluster" {
   description = "Tags for elasticache-cluster"
   type        = string
   default     = "elasticache-cluster"
@@ -76,10 +77,11 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "cluster_id" {
-  description = "The cluster ID for the ElastiCache cluster"
+variable "cluster_name" {
+  description = "The cluster name for the ElastiCache cluster"
   type        = string
-  default     = "redis-cluster"
+  default     = "memcached"
+
 }
 
 # Variables for KMS
@@ -136,19 +138,19 @@ variable "alarm_actions" {
   default     = []
 }
 
-variable "elasticache-subnet-group" {
+variable "elasticache_subnet_group" {
   description = "Subnet group for ElastiCache"
   type        = string
   default     = "elasticache-subnet-group"
 }
 
-variable "cloudwatch-logs" {
+variable "cloudwatch_logs" {
   description = "cloudwatch-logs for ElastiCache"
   type        = string
   default     = "cloudwatch-logs"
 }
 
-variable "logs-formates" {
+variable "logs_formates" {
   description = "logs-formates for ElastiCache"
   type        = string
   default     = "text"
@@ -166,25 +168,25 @@ variable "cache_logs_name" {
   default     = "redis-slow-logs"
 }
 
-variable "elasticache-pg-memcached" {
+variable "elasticache_pg_memcached" {
   description = "elasticache-pg for memcached ElastiCache"
   type        = string
   default     = "elasticache-pg"
 }
 
-variable "pg_family-memcached" {
+variable "pg_family_memcached" {
   description = "pg_family for memcached ElastiCache"
   type        = string
   default     = "memcached1.6"
 }
 
-variable "elasticache-pg-redis" {
+variable "elasticache_pg_redis" {
   description = "elasticache-pg for redis ElastiCache"
   type        = string
   default     = "cache-params"
 }
 
-variable "pg_family-redis" {
+variable "pg_family_redis" {
   description = "pg_family for redis ElastiCache"
   type        = string
   default     = "redis6.x"

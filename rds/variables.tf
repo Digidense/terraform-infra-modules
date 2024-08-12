@@ -1,29 +1,31 @@
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-  default = "192.168.0.0/24"
+  default     = "192.168.0.0/24"
 }
 
 variable "region" {
   description = "AWS region"
   type        = string
+  default     = "us-east-1"
 }
 
 variable "count_num" {
   description = "number of subnets"
   type        = number
+  default     = 2
 }
 
 variable "deletion_window_in_days" {
   description = "Number of days before the KMS key is deleted"
   type        = number
-  default = 30
+  default     = 10
 }
 
-variable "aliases_name" {
-  description = "Alias name for the KMS key"
+variable "rds_aliases_name" {
+  description = "The alias name for the RDS KMS key"
   type        = string
-  default     = "rds_kms_key"
+  default     = "alias/db_xxx_key"
 }
 
 variable "db_name" {
@@ -31,10 +33,12 @@ variable "db_name" {
   type        = string
 }
 
-variable "engine_name" {
-  description = "Engine name of the database"
-  type        = string
+variable "engine_names" {
+  description = "List of database engine names"
+  type        = list(string)
+  default     = ["mysql", "postgres", "sqlserver-ee"]
 }
+
 
 variable "instance_type" {
   description = "Instance type for the RDS instances"
@@ -49,7 +53,7 @@ variable "engine_version" {
 variable "allocated_storage" {
   description = "Allocated storage for the RDS instances"
   type        = number
-  default = 20
+  default     = 20
 }
 
 variable "storage_type" {
@@ -61,6 +65,7 @@ variable "storage_type" {
 variable "db_username" {
   description = "Username for the database"
   type        = string
+    default = "master_user"
 }
 
 variable "publicly_accessible" {
@@ -91,7 +96,7 @@ variable "aws_db_subnet_group" {
 variable "environment" {
   description = "Environment tag"
   type        = string
-  default = "deployment"
+  default     = "deployment"
 }
 
 variable "password_length" {
@@ -108,33 +113,35 @@ variable "password_format" {
 }
 
 variable "mysql_instance" {
-  description = "Whether to create a MySQL instance"
+  description = "Set to 'true' to create a MySQL instance, 'false' to skip its creation"
   type        = bool
-  default     = true
 }
 
 variable "postgres_instance" {
-  description = "Whether to create a PostgreSQL instance"
+  description = "Set to 'true' to create a PostgreSQL instance, 'false' to skip its creation"
   type        = bool
-  default     = true
 }
 
 variable "mssql_instance" {
-  description = "Whether to create an Oracle instance"
+  description = "Set to 'true' to create an MS SQL instance, 'false' to skip its creation"
   type        = bool
-  default     = true
+}
+variable "license_model" {
+  description = "The license model for the RDS instance"
+  type        = string
+  default     = "license-included"  # Or "bring-your-own-license"
 }
 
 variable "secret_name" {
   description = "Name for the Secrets Manager secret"
   type        = string
-  default = "db_secret"
+  default     = "databse11_secret"
 }
 
 variable "recovery_window_in_days" {
   description = "Recovery window in days for Secrets Manager"
   type        = number
-  default = 7
+  default     = 7
 }
 
 variable "retention_period" {
@@ -145,17 +152,23 @@ variable "retention_period" {
 variable "application_user" {
   description = "Name of the application user"
   type        = string
-  default = "application_user"
+  default     = "application_user"
 }
 
 variable "readonly_user" {
   description = "Name of the read-only user"
   type        = string
-  default = "readonly_user"
+  default     = "readonly_user"
 }
 
 variable "flyway_user" {
   description = "Name of the Flyway user"
   type        = string
-  default = "flyway_user"
+  default     = "flyway_user"
+}
+
+variable "db_schema_sql" {
+  description = "SQL statement to create the database schema"
+  type        = string
+  default     = ""
 }

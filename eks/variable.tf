@@ -22,6 +22,7 @@ variable "eks_cluster_name" {
   default     = "Demo_Cluster"
 }
 
+
 variable "addons_versions" {
   type = list(object({
     name    = string
@@ -62,6 +63,12 @@ variable "desired_size" {
   default     = 2
 }
 
+variable "region" {
+  type        = string
+  description = "region of the EKS cluster node creation"
+  default     = "us-east-1"
+}
+
 variable "max_size" {
   type        = number
   description = "max_size EKS cluster node creation"
@@ -74,53 +81,9 @@ variable "min_size" {
   default     = 1
 }
 
-variable "instance_types" {
-  type        = list(string)
-  description = "List of instance types for Karpenter"
-  default     = ["t3a.medium"]
-}
 
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC"
+variable "eks_instance_profile_name" {
   type        = string
-}
-
-variable "region" {
-  description = "The AWS region to create resources in"
-  type        = string
-}
-
-variable "count_num" {
-  description = "Number of subnets"
-  type        = number
-}
-
-variable "karpenter_instance_types" {
-  description = "Instance types for Karpenter"
-  type        = list(string)
-  default     = ["t3a.medium"]
-}
-
-variable "encrypt" {
-  description = "Enable encryption"
-  type        = bool
-  default     = true
-}
-
-variable "management_nodes" {
-  description = "Management nodes"
-  type        = list(string)
-  default     = ["t3.medium"]
-}
-# Variables for KMS
-variable "aliases_name" {
-  description = "Aliases_name for KMS "
-  type        = string
-  default     = "alias/kms_key"
-}
-
-variable "deletion_window_in_days" {
-  description = "deletion_window_in_days for KMS "
-  type        = number
-  default     = 7
+  description = "Instance profile name for Karpenter to use"
+  default     = "default"
 }

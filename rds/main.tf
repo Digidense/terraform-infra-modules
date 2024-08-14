@@ -69,7 +69,7 @@ resource "random_string" "unique_id" {
 # Creates an AWS KMS alias name for the RDS KMS key
 resource "aws_kms_alias" "rds_alias_main" {
   name          = "alias/${var.kms_alias_name_prefix}_${random_string.unique_id.result}"
-  target_key_id = aws_kms_key.rds_kms_key.arn
+  target_key_id = aws_kms_key.rds_kms_key_main.arn
 }
 
 
@@ -107,7 +107,7 @@ resource "aws_db_instance" "mysql_instance" {
   final_snapshot_identifier           = "final-snapshot-${local.sanitized_db_name}-${var.engine_names[0]}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
-  kms_key_id                          = aws_kms_key.rds_kms_key.arn
+  kms_key_id                          = aws_kms_key.rds_kms_key_main.arn
   iam_database_authentication_enabled = true
   tags = {
     Name        = "${local.sanitized_db_name}-${var.engine_names[0]}"
@@ -157,12 +157,11 @@ resource "aws_db_instance" "mssql_instance" {
   multi_az                            = var.multi_az
   backup_retention_period             = var.retention_period
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
-  license_model                       = var.license_model
   skip_final_snapshot                 = false
   final_snapshot_identifier           = "final-snapshot-${local.sanitized_db_name}-${var.engine_names[2]}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
-  kms_key_id                          = aws_kms_key.rds_kms_key.arn
+  kms_key_id                          = aws_kms_key.rds_kms_key_main.arn
   iam_database_authentication_enabled = true
   tags = {
     Name        = "${local.sanitized_db_name}-${var.engine_names[2]}"

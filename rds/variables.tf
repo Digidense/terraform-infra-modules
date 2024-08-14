@@ -28,6 +28,18 @@ variable "rds_aliases_name" {
   default     = "alias/db_xxx_key"
 }
 
+variable "random_string_length" {
+  description = "Length of the random string for KMS alias"
+  type        = number
+  default     = 6
+}
+
+variable "kms_alias_name_prefix" {
+  description = "Prefix for the KMS alias name"
+  type        = string
+  default     = "db_xxx_key"
+}
+
 variable "db_name" {
   description = "Name of the database"
   type        = string
@@ -36,7 +48,7 @@ variable "db_name" {
 variable "engine_names" {
   description = "List of database engine names"
   type        = list(string)
-  default     = ["mysql", "postgres", "sqlserver-ee"]
+  default     = ["mysql", "postgres", "sqlserver"]
 }
 
 
@@ -126,16 +138,11 @@ variable "mssql_instance" {
   description = "Set to 'true' to create an MS SQL instance, 'false' to skip its creation"
   type        = bool
 }
-variable "license_model" {
-  description = "The license model for the RDS instance"
-  type        = string
-  default     = "license-included"  # Or "bring-your-own-license"
-}
 
 variable "secret_name" {
   description = "Name for the Secrets Manager secret"
   type        = string
-  default     = "databse11_secret"
+  default     = "databse_new_secret"
 }
 
 variable "recovery_window_in_days" {
@@ -149,26 +156,6 @@ variable "retention_period" {
   type        = number
 }
 
-variable "application_user" {
-  description = "Name of the application user"
-  type        = string
-  default     = "application_user"
-}
 
-variable "readonly_user" {
-  description = "Name of the read-only user"
-  type        = string
-  default     = "readonly_user"
-}
 
-variable "flyway_user" {
-  description = "Name of the Flyway user"
-  type        = string
-  default     = "flyway_user"
-}
 
-variable "db_schema_sql" {
-  description = "SQL statement to create the database schema"
-  type        = string
-  default     = ""
-}

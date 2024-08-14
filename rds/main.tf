@@ -6,11 +6,6 @@ module "vpc_module" {
   count_num = var.count_num
 }
 
-# Provider block
-provider "aws" {
-  region = var.region
-}
-
 # Retrieves information about the current AWS account
 data "aws_caller_identity" "current" {}
 
@@ -67,12 +62,13 @@ resource "aws_kms_key_policy" "rds_key_policy_main" {
 
 # Creates an AWS KMS alias name for the RDS KMS key
 resource "random_string" "unique_id" {
-  length  = 6
+  length  = var.random_string_length
   special = false
 }
 
+# Creates an AWS KMS alias name for the RDS KMS key
 resource "aws_kms_alias" "rds_alias_main" {
-  name          = "alias/db_xxx_key_${random_string.unique_id.result}"
+  name          = "alias/${var.kms_alias_name_prefix}_${random_string.unique_id.result}"
   target_key_id = aws_kms_key.rds_kms_key.arn
 }
 
@@ -136,7 +132,6 @@ resource "aws_db_instance" "postgres_instance" {
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   storage_encrypted                   = true
   skip_final_snapshot                 = true
-#  final_snapshot_identifier           = "final-snapshot-${local.sanitized_db_name}-${var.engine_names[1]}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
   kms_key_id                          = aws_kms_key.rds_kms_key_main.arn

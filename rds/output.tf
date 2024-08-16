@@ -19,6 +19,11 @@ output "security_group" {
   value = module.vpc_module.security_group
 }
 
+# Output the selected instance ARN
+output "selected_instance" {
+  value = local.total_selected == 1 ? "Instance created" : "No instance created or multiple instances selected, which is not allowed"
+}
+
 output "mysql_database_arn" {
   value = length(aws_db_instance.mysql_instance) > 0 ? aws_db_instance.mysql_instance[0].arn : null
 }

@@ -45,14 +45,17 @@ variable "db_name" {
   type        = string
 }
 
-variable "engine_names" {
-  description = "List of database engine names"
-  type        = list(string)
-  default     = ["mysql", "postgres", "sqlserver"]
+variable "engine_type" {
+  description = "Choose which RDS instance type to create. 'mysql' or 'postgres' or 'mssql'."
+  type        =  string
+
+  validation {
+    condition = contains(["mysql", "postgres", "mssql",], var.engine_type)
+    error_message = "You must choose 'mysql', 'postgres', 'mssql' for the instance_type."
+  }
 }
 
-
-variable "instance_type" {
+variable "instance_class" {
   description = "Instance type for the RDS instances"
   type        = string
 }
@@ -77,7 +80,7 @@ variable "storage_type" {
 variable "db_username" {
   description = "Username for the database"
   type        = string
-    default = "master_user"
+  default = "master_user"
 }
 
 variable "publicly_accessible" {
@@ -117,32 +120,16 @@ variable "password_length" {
   default     = 15
 }
 
-
 variable "password_format" {
   description = "Whether the database password should include special characters"
   type        = bool
   default     = true
 }
 
-variable "mysql_instance" {
-  description = "Set to 'true' to create a MySQL instance, 'false' to skip its creation"
-  type        = bool
-}
-
-variable "postgres_instance" {
-  description = "Set to 'true' to create a PostgreSQL instance, 'false' to skip its creation"
-  type        = bool
-}
-
-variable "mssql_instance" {
-  description = "Set to 'true' to create an MS SQL instance, 'false' to skip its creation"
-  type        = bool
-}
-
 variable "secret_name" {
   description = "Name for the Secrets Manager secret"
   type        = string
-  default     = "databse_new_secret"
+  default     = "secrets"
 }
 
 variable "recovery_window_in_days" {

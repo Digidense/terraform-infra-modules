@@ -81,6 +81,11 @@ variable "min_size" {
   default     = 1
 }
 
+variable "enpoint" {
+  type        = bool
+  description = "endpoint public access"
+  default     = true
+}
 
 variable "eks_instance_profile_name" {
   type        = string

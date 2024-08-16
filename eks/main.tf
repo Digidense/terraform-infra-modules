@@ -102,7 +102,7 @@ resource "aws_eks_cluster" "my_cluster" {
       module.vpc_module.subnet_pri02
     ]
     security_group_ids     = [module.vpc_module.security_group_id]
-    endpoint_public_access = true
+    endpoint_public_access = var.enpoint
   }
 
   encryption_config {
@@ -115,6 +115,7 @@ resource "aws_eks_cluster" "my_cluster" {
   timeouts {
     create = "30m"
   }
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 }
 
 # Creating the CNI addon for the EKS cluster

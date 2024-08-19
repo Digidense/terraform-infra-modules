@@ -31,10 +31,4 @@ This project provisions the following AWS resources:
 | `web_acl_description`     | A description for the Web ACL.                                               | `Digidense Web ACL for managing WAF rules` |
 | `web_acl_metric_name`     | The metric name used for CloudWatch visibility for the Web ACL.              | `digidenseWebACL`         |
 
-## Setup Instructions
 
-1. **Install Terraform**: Ensure that you have [Terraform installed](https://www.terraform.io/downloads.html) on your local machine.
-
-2. **Initialize Terraform**: Run the following command to initialize the Terraform configuration:
-   ```sh
-   terraform init

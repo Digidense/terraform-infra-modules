@@ -1,4 +1,5 @@
 # Configure the Helm provider
+
 provider "helm" {
   kubernetes {
     host                   = aws_eks_cluster.my_cluster.endpoint

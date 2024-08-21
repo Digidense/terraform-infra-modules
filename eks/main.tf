@@ -1,4 +1,3 @@
-# Local values for policies
 locals {
   ecr_readonly_policy_arn    = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   eks_cni_policy_arn         = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
@@ -13,18 +12,7 @@ locals {
   ]
 }
 
-# Creating KMS key for EKS encryption
-resource "aws_kms_key" "eks_kms" {
-  description = "KMS key for EKS cluster encryption"
-}
-
-# Creating KMS alias for easier reference
-resource "aws_kms_alias" "eks_kms_alias" {
-  name          = "alias/eks-cluster-key"
-  target_key_id = aws_kms_key.eks_kms.id
-}
-
-# Creating IAM role for EKS and EC2 service
+# Creating EKS role for EKS and EC2 service
 resource "aws_iam_role" "eks_role" {
   name = var.role_name
   assume_role_policy = jsonencode({
@@ -48,9 +36,9 @@ resource "aws_iam_role" "eks_role" {
   })
 }
 
-# Attach additional policies to the EKS role
+# Creating policy attachment for EKS cluster
 resource "aws_iam_policy_attachment" "eks_node_policy_attachments" {
-  count      = length(local.additional_policies)
+  count      = 4
   name       = "${var.node_attachment_name}-${count.index}"
   roles      = [aws_iam_role.eks_role.name]
   policy_arn = element(local.additional_policies, count.index)
@@ -63,34 +51,12 @@ resource "aws_iam_policy_attachment" "eks_cluster_policy_attachment" {
   policy_arn = local.amazoneksclusterpolicy_arn
 }
 
-# Attach the KMS policy to the EKS role
-resource "aws_iam_role_policy" "eks_kms_policy" {
-  name = "eks-kms-policy"
-  role = aws_iam_role.eks_role.name
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Action" : [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ],
-        "Resource" : aws_kms_key.eks_kms.arn
-      }
-    ]
-  })
-}
-
 # VPC module referring to create EKS cluster
 module "vpc_module" {
   source = "git::https://github.com/Digidense/terraform_module.git//vpc?ref=feature/DD-42-VPC_module"
 }
 
-# Creating the EKS cluster with encryption enabled
+# Creating the EKS cluster
 resource "aws_eks_cluster" "my_cluster" {
   name     = var.eks_cluster_name
   role_arn = aws_iam_role.eks_role.arn
@@ -102,20 +68,11 @@ resource "aws_eks_cluster" "my_cluster" {
       module.vpc_module.subnet_pri02
     ]
     security_group_ids     = [module.vpc_module.security_group_id]
-    endpoint_public_access = var.enpoint
+    endpoint_public_access = true
   }
-
-  encryption_config {
-    resources = ["secrets"]
-    provider {
-      key_arn = aws_kms_key.eks_kms.arn
-    }
-  }
-
   timeouts {
     create = "30m"
   }
-  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 }
 
 # Creating the CNI addon for the EKS cluster
@@ -151,10 +108,17 @@ resource "aws_eks_node_group" "my_node_group" {
   scaling_config {
     desired_size = var.desired_size
     max_size     = var.max_size
-    min_size     = var.min_size
+    min_size     = var.mix_size
   }
   instance_types = ["t3.2xlarge"]
   depends_on = [
     aws_eks_cluster.my_cluster,
   ]
+}
+
+# Creating role attachment for node group
+resource "aws_iam_role_policy_attachment" "eks_additional_policies" {
+  count      = length(local.additional_policies)
+  role       = aws_iam_role.eks_role.name
+  policy_arn = local.additional_policies[count.index]
 }

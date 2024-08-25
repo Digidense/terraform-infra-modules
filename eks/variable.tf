@@ -75,17 +75,17 @@ variable "max_size" {
   default     = 2
 }
 
-variable "min_size" {
+variable "mix_size" {
   type        = number
   description = "mix_size EKS cluster node creation"
   default     = 1
 }
 
-variable "enpoint" {
-  type        = bool
-  description = "endpoint public access"
-  default     = true
-}
+#variable "ami_id" {
+#  type        = string
+#  description = "AMI ID to be used for EKS nodes"
+#  default     = "ami-0c8e23f950c7725b9"
+#}
 
 variable "eks_instance_profile_name" {
   type        = string

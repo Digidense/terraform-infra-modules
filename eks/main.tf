@@ -108,6 +108,9 @@ resource "aws_eks_cluster" "my_cluster" {
       key_arn = aws_kms_key.eks_kms.arn
     }
   }
+
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+  
   timeouts {
     create = "30m"
   }

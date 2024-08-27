@@ -13,20 +13,17 @@ variable "api_name" {
 variable "methods" {
   description = "A list of HTTP methods to create for the API"
   type        = list(string)
-  default     = ["POST"]
 }
 
 variable "path" {
   type        = string
   description = "This block is for path reference"
-  default     = "cart"
 }
 
 
 variable "auth_type" {
   description = "The type of authentication to use (IAM or LAMBDA)"
   type        = string
-  default     = "LAMBDA"
 }
 
 variable "lambda_function_name" {

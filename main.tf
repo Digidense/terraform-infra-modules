@@ -12,13 +12,19 @@ resource "aws_wafv2_ip_set" "digidense_ip_set" {
 }
 
 # Create a WAF Web ACL
-resource "aws_wafv2_web_acl" "digidense_web_acl" {
+resource "aws_wafv2_web_acl" "web_acl" {
   name        = var.web_acl_name
   description = var.web_acl_description
   scope       = var.scope
 
   default_action {
     allow {}
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = var.web_acl_metric_name
+    sampled_requests_enabled   = true
   }
 
   # Rule for AWS Managed Rules Common Rule Set
@@ -67,10 +73,33 @@ resource "aws_wafv2_web_acl" "digidense_web_acl" {
     }
   }
 
+  # Rule for AWS Managed Rules Known Bad Inputs
+  rule {
+    name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 3
+
+    statement {
+      managed_rule_group_statement {
+        vendor_name = "AWS"
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+      }
+    }
+
+    override_action {
+      none {}
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWSManagedRulesKnownBadInputsRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
   # Rule to block specific IPs using the IP set
   rule {
     name     = "BlockSpecificIPs"
-    priority = 3
+    priority = 4
 
     statement {
       ip_set_reference_statement {
@@ -89,9 +118,5 @@ resource "aws_wafv2_web_acl" "digidense_web_acl" {
     }
   }
 
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = var.web_acl_metric_name
-    sampled_requests_enabled   = true
-  }
+  # Additional rules can be added here for further protection
 }

@@ -28,7 +28,7 @@ variable "random_string_length" {
   default     = 4
 }
 
-variable "kms_alias_name_prefix" {
+variable "kms_alias_name" {
   description = "Prefix for the KMS alias name"
   type        = string
   default     = "dbs_key"

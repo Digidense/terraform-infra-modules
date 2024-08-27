@@ -63,12 +63,12 @@ resource "aws_kms_key_policy" "rds_key_policy_main" {
 # Creates an AWS KMS alias name for the RDS KMS key
 resource "random_string" "unique_id" {
   length  = var.random_string_length
-  special = false
+  special = var.random_string_special
 }
 
 # Creates an AWS KMS alias name for the RDS KMS key
 resource "aws_kms_alias" "rds_alias_main" {
-  name          = "alias/${var.kms_alias_name_prefix}_${random_string.unique_id.result}"
+  name          = "alias/${var.kms_alias_name}_${random_string.unique_id.result}"
   target_key_id = aws_kms_key.rds_kms_key_main.arn
 }
 
@@ -88,8 +88,6 @@ locals {
   create_mysql    = var.selected_engine == "mysql"
   create_postgres = var.selected_engine == "postgres"
   create_mssql    = var.selected_engine == "mssql"
-
-  total_selected = length(compact([local.create_mysql, local.create_postgres, local.create_mssql]))
 }
 
 # MySQL Database Instance
@@ -191,7 +189,7 @@ resource "random_string" "random_secrets" {
 
 # Create Secrets Manager Secret for Database Credentials
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.db_name}-${var.secret_name}-${random_string.random_secrets.result}"
+  name        = "${var.secret_name}-${random_string.random_secrets.result}"
   description = "Database credentials for ${var.db_name}"
 }
 

@@ -83,21 +83,21 @@ resource "aws_db_subnet_group" "subnet_gp" {
   }
 }
 
-# Local variables to determine which instance to create based on user input
+# Local Variables for Engine Type Selection
 locals {
-  create_mysql    = var.engine_type == "mysql"
-  create_postgres = var.engine_type == "postgres"
-  create_mssql    = var.engine_type == "mssql"
+  create_mysql    = var.selected_engine == "mysql"
+  create_postgres = var.selected_engine == "postgres"
+  create_mssql    = var.selected_engine == "mssql"
 
-  total_selected = length(compact([local.create_mssql, local.create_mysql, local.create_postgres]))
+  total_selected = length(compact([local.create_mysql, local.create_postgres, local.create_mssql]))
 }
 
 # MySQL Database Instance
 resource "aws_db_instance" "mysql_instance" {
   count                               = local.create_mysql ? 1 : 0
-  identifier                          = "${var.db_name}-${var.engine_type}"
+  identifier                          = "${var.db_name}-${var.selected_engine}"
   instance_class                      = var.instance_class
-  engine                              = var.engine_type
+  engine                              = var.selected_engine
   engine_version                      = var.engine_version
   allocated_storage                   = var.allocated_storage
   storage_type                        = var.storage_type
@@ -109,13 +109,13 @@ resource "aws_db_instance" "mysql_instance" {
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   storage_encrypted                   = true
   skip_final_snapshot                 = false
-  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.engine_type}"
+  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.selected_engine}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
   kms_key_id                          = aws_kms_key.rds_kms_key_main.arn
   iam_database_authentication_enabled = true
   tags = {
-    Name        = "${var.db_name}-${var.engine_type}"
+    Name        = "${var.db_name}-${var.selected_engine}"
     Environment = var.environment
   }
 }
@@ -123,9 +123,9 @@ resource "aws_db_instance" "mysql_instance" {
 # PostgreSQL Database Instance
 resource "aws_db_instance" "postgres_instance" {
   count                               = local.create_postgres ? 1 : 0
-  identifier                          = "${var.db_name}-${var.engine_type}"
+  identifier                          = "${var.db_name}-${var.selected_engine}"
   instance_class                      = var.instance_class
-  engine                              = var.engine_type
+  engine                              = var.selected_engine
   engine_version                      = var.engine_version
   allocated_storage                   = var.allocated_storage
   storage_type                        = var.storage_type
@@ -137,13 +137,13 @@ resource "aws_db_instance" "postgres_instance" {
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   storage_encrypted                   = true
   skip_final_snapshot                 = false
-  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.engine_type}"
+  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.selected_engine}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
   kms_key_id                          = aws_kms_key.rds_kms_key_main.arn
   iam_database_authentication_enabled = true
   tags = {
-    Name        = "${var.db_name}-${var.engine_type}"
+    Name        = "${var.db_name}-${var.selected_engine}"
     Environment = var.environment
   }
 }
@@ -151,9 +151,9 @@ resource "aws_db_instance" "postgres_instance" {
 # Microsoft SQL Server Database Instance
 resource "aws_db_instance" "mssql_instance" {
   count                               = local.create_mssql ? 1 : 0
-  identifier                          = "${var.db_name}-${var.engine_type}"
+  identifier                          = "${var.db_name}-${var.selected_engine}"
   instance_class                      = var.instance_class
-  engine                              = var.engine_type
+  engine                              = var.selected_engine
   engine_version                      = var.engine_version
   allocated_storage                   = var.allocated_storage
   storage_type                        = var.storage_type
@@ -165,13 +165,13 @@ resource "aws_db_instance" "mssql_instance" {
   auto_minor_version_upgrade          = var.auto_minor_version_upgrade
   storage_encrypted                   = true
   skip_final_snapshot                 = false
-  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.engine_type}"
+  final_snapshot_identifier           = "final-snapshot-${var.db_name}-${var.selected_engine}"
   db_subnet_group_name                = aws_db_subnet_group.subnet_gp.name
   vpc_security_group_ids              = [module.vpc_module.security_group.id]
   kms_key_id                          = aws_kms_key.rds_kms_key_main.arn
   iam_database_authentication_enabled = true
   tags = {
-    Name        = "${var.db_name}-${var.engine_type}"
+    Name        = "${var.db_name}-${var.selected_engine}"
     Environment = var.environment
   }
 }
@@ -183,9 +183,15 @@ resource "random_password" "db_password" {
   override_special = "!#$%&*()-_=+[]{}<>:?"
 }
 
-# Store database credentials in AWS Secrets Manager
+# Generate Random String for Secrets
+resource "random_string" "random_secrets" {
+  length  = var.random_string_length
+  special = var.random_string_special
+}
+
+# Create Secrets Manager Secret for Database Credentials
 resource "aws_secretsmanager_secret" "db_credentials" {
-  name        = "${var.db_name}-${var.secret_name}"
+  name        = "${var.db_name}-${var.secret_name}-${random_string.random_secrets.result}"
   description = "Database credentials for ${var.db_name}"
 }
 
@@ -243,12 +249,12 @@ locals {
 # Resource to create IAM users as defined in the local.users map
 resource "aws_iam_user" "users" {
   for_each = local.users
-  name = each.value
+  name     = each.value
 }
 
 # Resource to attach the RDS access policy to each IAM user
 resource "aws_iam_user_policy_attachment" "user_policy_attachments" {
-  for_each = local.iam_users_policies
+  for_each   = local.iam_users_policies
   user       = each.value
   policy_arn = aws_iam_policy.rds_access_policy.arn
 }

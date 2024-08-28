@@ -22,6 +22,11 @@ variable "eks_cluster_name" {
   default     = "Demo_Cluster"
 }
 
+variable "endpoint_access" {
+  type        = bool
+  description = "endpoint public access"
+  default     = true
+}
 
 variable "addons_versions" {
   type = list(object({
@@ -60,7 +65,7 @@ variable "cluster_version" {
 variable "desired_size" {
   type        = number
   description = "desired_size EKS cluster node creation"
-  default     = 2
+  default     = 3
 }
 
 variable "region" {
@@ -72,7 +77,7 @@ variable "region" {
 variable "max_size" {
   type        = number
   description = "max_size EKS cluster node creation"
-  default     = 2
+  default     = 4
 }
 
 variable "mix_size" {
@@ -91,4 +96,10 @@ variable "eks_instance_profile_name" {
   type        = string
   description = "Instance profile name for Karpenter to use"
   default     = "default"
+}
+
+variable "node_role_name" {
+  type        = string
+  description = "Name of the EKS cluster"
+  default     = "eks_nodegroup_policy"
 }

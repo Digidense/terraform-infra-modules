@@ -47,16 +47,16 @@ variable "api_name" {
 }
 
 variable "path-name" {
-  description = "Enter the path of your API_Gateway"
-  type = string
+  description = "The path component of the API Gateway resource, used to define the specific endpoint within the API."
+  type        = string
 }
 
 variable "method" {
-  description = "This block is for method reference"
-  type = string
+  description = "The HTTP method (e.g., GET, POST, PUT, DELETE) that will be associated with the API Gateway method."
+  type        = string
 }
 
 variable "Stage_name" {
-  description = "This block is for method reference"
-  type = string
+  description = "The name of the deployment stage for the API Gateway, typically used to differentiate between environments (e.g., dev, test, prod)."
+  type        = string
 }

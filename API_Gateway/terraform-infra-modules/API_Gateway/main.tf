@@ -26,12 +26,12 @@ resource "aws_iam_role_policy_attachment" "lambda_exec_role_attachment" {
 
 # Create API Gateway authorizer
 resource "aws_api_gateway_authorizer" "auth" {
-  name                        = var.auth_name
-  rest_api_id                 = aws_api_gateway_rest_api.api_gateway.id
-  authorizer_uri              = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${aws_lambda_function.authorizer.arn}/invocations"
+  name                             = var.auth_name
+  rest_api_id                      = aws_api_gateway_rest_api.api_gateway.id
+  authorizer_uri                   = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${aws_lambda_function.authorizer.arn}/invocations"
   authorizer_result_ttl_in_seconds = 300
-  identity_source             = "method.request.header.Authorization"
-  type                        = "TOKEN"
+  identity_source                  = "method.request.header.Authorization"
+  type                             = "TOKEN"
 }
 
 # Grant API Gateway permission to invoke Lambda authorizer

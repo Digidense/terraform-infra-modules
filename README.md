@@ -1,4 +1,4 @@
-### ***
+### 
 terraform {
   required_providers {
     aws = {
@@ -35,4 +35,4 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(aws_eks_cluster.my_cluster.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.my_cluster.token
 }
-### ***
+### 

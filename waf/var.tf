@@ -7,25 +7,7 @@ variable "aws_region" {
 variable "scope" {
   description = "Scope of the WAF Web ACL (REGIONAL or CLOUDFRONT)"
   type        = string
-  default     = "REGIONAL"
-}
-
-variable "ip_set_name" {
-  description = "Name of the IP set"
-  type        = string
-  default     = "digidense-ip-set"
-}
-
-variable "ip_set_description" {
-  description = "Description of the IP set"
-  type        = string
-  default     = "Digidense IP set for blocking specific IPs"
-}
-
-variable "blocked_ips" {
-  description = "List of IP addresses or CIDR ranges to block"
-  type        = list(string)
-  default     = ["192.0.2.0/24", "198.51.100.0/24"] # Replace with actual IPs
+  default     = "CLOUDFRONT"
 }
 
 variable "web_acl_name" {

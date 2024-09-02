@@ -1,18 +1,5 @@
-provider "aws" {
-  region = var.aws_region
-}
-
-# Create an IP set for blocking specific IPs
-resource "aws_wafv2_ip_set" "digidense_ip_set" {
-  name               = var.ip_set_name
-  description        = var.ip_set_description
-  scope              = var.scope
-  ip_address_version = "IPV4"
-  addresses          = var.blocked_ips
-}
-
-# Create a WAF Web ACL
-resource "aws_wafv2_web_acl" "web_acl" {
+# Create a WAFv2 Web ACL
+resource "aws_wafv2_web_acl" "waf_name" {
   name        = var.web_acl_name
   description = var.web_acl_description
   scope       = var.scope
@@ -120,8 +107,3 @@ resource "aws_wafv2_web_acl" "web_acl" {
 
   # Additional rules can be added here for further protection
 }
-
-
-
-
-

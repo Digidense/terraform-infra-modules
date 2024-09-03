@@ -13,7 +13,7 @@ variable "scope" {
 variable "web_acl_name" {
   description = "Name of the WAF Web ACL"
   type        = string
-  default     = "digidense-web-acl1"
+  default     = "cloud-web-acl"
 }
 
 variable "web_acl_description" {
@@ -25,5 +25,5 @@ variable "web_acl_description" {
 variable "web_acl_metric_name" {
   description = "Metric name for CloudWatch visibility for the Web ACL"
   type        = string
-  default     = "digidenseWebACL"
+  default     = "cloudWebACL"
 }

@@ -1,4 +1,19 @@
+## CREATE KARPENTER :
 
+$ helm repo add karpenter https://charts.karpenter.sh
+$ helm repo update
+$ kubectl create namespace karpenter
+$ helm install karpenter karpenter/karpenter \
+  --namespace karpenter \
+  --set serviceAccount.create=true \
+  --set clusterName=Demo_Cluster \
+  --set clusterEndpoint=https://C2FCED4833AA9C301D579224E2168885.sk1.us-east-1.eks.amazonaws.com \
+  --set aws.defaultInstanceProfile=default \
+  --set controller.resources.requests.cpu=1 \
+  --set controller.resources.requests.memory=1Gi \
+  --set settings.aws.interruptionQueueName=your-interruption-queue-name
+
+-----------------------------------------------------------------------------------------------------------------  
 terraform {
   required_providers {
     aws = {

@@ -1,8 +1,8 @@
 ## CREATE KARPENTER :
 
-$ helm repo add karpenter https://charts.karpenter.sh
-$ helm repo update
-$ kubectl create namespace karpenter
+`` $ helm repo add karpenter https://charts.karpenter.sh ``
+`` $ helm repo update ``
+`` $ kubectl create namespace karpenter ``
 $ helm install karpenter karpenter/karpenter \
   --namespace karpenter \
   --set serviceAccount.create=true \

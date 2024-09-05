@@ -1,3 +1,14 @@
+# WAF Module
+module "waf_module" {
+  source = "git::https://github.com/Digidense/terraform-infra-modules.git//waf?ref=feature/waf_module"
+
+  aws_region          = var.aws_region
+  scope               = var.scope
+  web_acl_name        = var.web_acl_name
+  web_acl_description = var.web_acl_description
+  web_acl_metric_name = var.web_acl_metric_name
+}
+
 # AWS S3 bucket resource
 resource "aws_s3_bucket" "test_bucket" {
   bucket = var.bucket_name
@@ -27,7 +38,7 @@ resource "aws_s3_bucket_acl" "acl" {
   ]
 
   bucket = aws_s3_bucket.test_bucket.id
-  acl    = "public-read"
+  acl    = "private"
 }
 
 # S3 bucket policy for public read access
@@ -59,53 +70,11 @@ resource "aws_s3_bucket_website_configuration" "web-config" {
 resource "aws_s3_object" "sample_html" {
   bucket       = aws_s3_bucket.test_bucket.id
   key          = "sample.html"
-  source       = "C:/Users/admin/IdeaProjects/cloud_front/web_hosting_file/sample.html"
+  source       = "C:/Users/admin/IdeaProjects/cloud_waf/sample.html"
   acl          = "public-read"
   content_type = "text/html"
 }
 
-# Create a CloudFront Origin Access Identity (OAI) for S3 bucket access
-resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
-  comment = "OAI for S3 bucket"
-}
-
-# Create a WAFv2 Web ACL
-resource "aws_wafv2_web_acl" "waf_name" {
-  name        = "sample-web-acl"
-  description = "Web ACL for CloudFront"
-  scope       = "CLOUDFRONT"
-  default_action {
-    allow {}
-  }
-
-  rule {
-    name     = "example-rule"
-    priority = 1
-
-    statement {
-      managed_rule_group_statement {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-
-    override_action {
-      none {}
-    }
-
-    visibility_config {
-      sampled_requests_enabled = true
-      cloudwatch_metrics_enabled = true
-      metric_name = "s3-waf-rule"
-    }
-  }
-
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "example-web-acl"
-    sampled_requests_enabled   = true
-  }
-}
 
 # Create a CloudFront distribution
 resource "aws_cloudfront_distribution" "cdn_distribution" {
@@ -113,9 +82,6 @@ resource "aws_cloudfront_distribution" "cdn_distribution" {
     domain_name = aws_s3_bucket.test_bucket.bucket_regional_domain_name
     origin_id   = aws_s3_bucket.test_bucket.id
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
-    }
   }
 
   enabled             = true
@@ -151,7 +117,5 @@ resource "aws_cloudfront_distribution" "cdn_distribution" {
       restriction_type = "none"
     }
   }
-
-  # Associate the WAF Web ACL with the CloudFront distribution
-  web_acl_id = aws_wafv2_web_acl.waf_name.arn
+  web_acl_id = module.waf_module.waf_acl_id
 }

@@ -8,3 +8,9 @@ output "distribution_domain_name" {
   value = aws_cloudfront_distribution.cdn_distribution.domain_name
 }
 
+# output from the WAF module
+output "waf_acl_id" {
+  description = "The ARN of the WAF Web ACL from the waf_module"
+  value       = module.waf_module.waf_acl_id
+}
+

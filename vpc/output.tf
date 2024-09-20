@@ -3,11 +3,11 @@ output "vpc_id" {
 }
 
 output "subnet_public" {
-  value = aws_subnet.pub01
+  value = aws_subnet.pub01[*].id
 }
 
 output "subnet_private" {
-  value = aws_subnet.pri01
+  value = aws_subnet.pri01[*].id
 }
 
 output "security_group" {

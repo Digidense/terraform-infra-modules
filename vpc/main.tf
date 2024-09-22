@@ -81,6 +81,7 @@ resource "aws_route_table_association" "pri_rt_01" {
 
 #Create elastic ip address
 resource "aws_eip" "Elastic_IPs" {
+ tags          = var.vpc-tag
 }
 
 #create nat_gateway

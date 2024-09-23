@@ -23,7 +23,7 @@ variable "az" {
 }
 variable "public_subnet" {
   description = "create public subnet"
-  type        = list(string)
+  type        = list(number)
   default     = ["192.168.0.0/26", "192.168.0.64/26"]
 }
 
